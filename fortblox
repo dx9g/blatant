@@ -1,0 +1,126 @@
+--// Theme Settings
+getgenv().LibTheme = { 
+    MainColor = Color3.fromRGB(35,35,40);
+    BrighterMainColor = Color3.fromRGB(40,40,45);
+    IconsColor = Color3.fromRGB(100,100,120);
+    Accent = Color3.fromRGB(0,100,255);
+    DarkText = Color3.fromRGB(170,170,170);
+    BrightText = Color3.fromRGB(145,145,145);
+    Font = "Gotham";
+    SoundVolume = 0.5;
+    HideKey = "LeftAlt"
+}
+
+--// Load Ocerium UI Library
+local Library = loadstring(game:HttpGet("https://github.com/slf0Dev/Ocerium_Project/raw/main/Ocerium%20Special%20ui"))()
+
+--// Create the main window
+local Main = Library.Main("Ocerium")
+
+--// EXAMPLE PAGE (Already in your snippet)
+local Page = Main.Page("Page","3926305904",Vector2.new(924, 204),Vector2.new(36, 36))
+local Section = Page.Section("Section")
+
+local Toggle = Section.Component("Toggle","Toggle Name",function(bool)
+    -- Toggle callback
+end,false)
+
+local Dropdown = Section.Component("Dropdown","Dropdown Name",{},false,function(choice,bool)
+    -- Dropdown callback
+end,false)
+
+local Slider = Section.Component("Slider","Slider Name",0,100,false,function(value)
+    -- Slider callback
+end,50)
+
+local Button = Section.Component("Button","Button Name",function()
+    -- Button callback
+end)
+
+local Paragraph = Section.Component("Card", "Title", "Text here")
+
+--// EXAMPLE LOGS
+local Logs = Main.Logs("Logs name")
+local log1 = Logs.LogWithButtons("smh")
+local logbutton = log1.Button("something",function()
+    -- Log button callback
+end)
+
+--====================================================
+--// MOVEMENT PAGE + SECTION
+--====================================================
+local MovementPage = Main.Page("Movement","3926305904",Vector2.new(924, 204),Vector2.new(36, 36))
+local MovementSection = MovementPage.Section("Movement")
+
+--// NEAREST CHEST BUTTON
+MovementSection.Component("Button", "Nearest Chest", function()
+    local player = game.Players.LocalPlayer
+    if not player then return end
+
+    local character = player.Character or player.CharacterAdded:Wait()
+    if not character then return end
+
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local nearestChest = nil
+    local nearestDistance = math.huge
+
+    -- Loop through all children of workspace.Chests
+    if workspace:FindFirstChild("Chests") then
+        for _, chest in ipairs(workspace.Chests:GetChildren()) do
+            if chest:IsA("BasePart") then
+                local dist = (chest.Position - hrp.Position).Magnitude
+                if dist < nearestDistance then
+                    nearestDistance = dist
+                    nearestChest = chest
+                end
+            end
+        end
+    else
+        warn("No folder named 'Chests' found in the workspace.")
+        return
+    end
+
+    -- Teleport if we found a nearest chest
+    if nearestChest then
+        hrp.CFrame = nearestChest.CFrame
+    else
+        warn("No valid chest found in workspace.Chests.")
+    end
+end)
+
+--// WALKSPEED SLIDER (1 to 100)
+MovementSection.Component("Slider", "WalkSpeed", 1, 100, false, function(value)
+    local player = game.Players.LocalPlayer
+    if not player then return end
+
+    local character = player.Character or player.CharacterAdded:Wait()
+    if not character then return end
+
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = value
+    end
+end, 16) -- 16 is the default Roblox WalkSpeed
+
+--// INFINITE JUMP TOGGLE
+local infiniteJumpEnabled = false
+
+MovementSection.Component("Toggle", "Infinite Jump", function(bool)
+    infiniteJumpEnabled = bool
+end, false)
+
+--// Handle Infinite Jump
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if infiniteJumpEnabled then
+        local player = game.Players.LocalPlayer
+        local character = player.Character
+        if character then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end
+    end
+end)
